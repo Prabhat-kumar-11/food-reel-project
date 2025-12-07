@@ -1,0 +1,138 @@
+/* ==== MAIN CONTAINER ==== */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+
+  background: linear-gradient(
+    135deg,
+    var(--primary-light),
+    var(--primary-color),
+    var(--primary-dark)
+  );
+}
+
+/* ==== INNER WRAPPER ==== */
+.auth-content {
+  width: 100%;
+  max-width: 900px;
+
+  background: var(--background-color);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-lg);
+
+  transition: var(--transition);
+}
+
+/* ==== HEADER ==== */
+.auth-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.auth-header p {
+  text-align: center;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+}
+
+/* ==== GRID ==== */
+.roles-grid {
+  margin-top: var(--spacing-xl);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+/* ==== CARD ==== */
+.role-card {
+  background: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.role-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+/* ==== ICON ==== */
+.role-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+}
+
+/* ==== TITLE ==== */
+.role-card h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.role-card p {
+  font-size: var(--font-size-base);
+  margin-top: var(--spacing-sm);
+  color: var(--text-secondary);
+}
+
+/* ==== BUTTONS ==== */
+.role-buttons {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.btn {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+/* Primary Button */
+.btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: var(--background-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+  background: var(--border-light);
+}
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 768px) {
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-content {
+    padding: var(--spacing-xl);
+  }
+}
