@@ -4,8 +4,8 @@ import "./App.css";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
 
-// Prefer environment variable set in `.env` (VITE_API_URL). Fallback to localhost:8080 for local dev.
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+export const API_URL = "https://food-reel-project-4jlx.onrender.com";
 
 function App() {
   return (

@@ -11,8 +11,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://zomato-reel-delta.vercel.app',
-  'https://reel-zom-project.vercel.app'
+
 ];
 
 // Middleware to echo allowed origin and explicitly set credentials header.
