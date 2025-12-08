@@ -15,16 +15,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post(
-        `${API_URL}/api/auth/logout`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      await axios.get(`${API_URL}/api/auth/user/logout`, {
+        withCredentials: true,
+      });
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      // Clear localStorage flags
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("userRole");
       setUser(null);
     }
   };

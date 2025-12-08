@@ -1,180 +1,201 @@
-import React, { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
-import { Link } from 'react-router-dom'
-import BottomNavigation from '../../components/BottomNavigation'
-import '../../styles/saved.css'
-import { API_URL } from '../../App'
-
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import BottomNavigation from "../../components/BottomNavigation";
+import "../../styles/saved.css";
+import { API_URL } from "../../App";
 
 const Saved = () => {
-  const containerRef = useRef(null)
-  const [savedVideos, setSavedVideos] = useState([])
-  const [interactions, setInteractions] = useState({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const navigate = useNavigate();
+  const containerRef = useRef(null);
+  const [savedVideos, setSavedVideos] = useState([]);
+  const [interactions, setInteractions] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Initialize interactions state (handle saved entry shape: { food })
   useEffect(() => {
-    const initialInteractions = {}
-    savedVideos.forEach(entry => {
-      const item = entry.food || entry
+    const initialInteractions = {};
+    savedVideos.forEach((entry) => {
+      const item = entry.food || entry;
       if (!initialInteractions[item._id]) {
         initialInteractions[item._id] = {
           liked: item.isLiked || false,
           likes: item.likesCount || item.likes || 0,
           bookmarked: true,
           bookmarks: item.savesCount || item.bookmarks || 0,
-          showComments: false
-        }
+          showComments: false,
+        };
       }
-    })
-    setInteractions(initialInteractions)
-  }, [savedVideos])
+    });
+    setInteractions(initialInteractions);
+  }, [savedVideos]);
 
   // Handle video autoplay
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const container = containerRef.current;
+    if (!container) return;
 
-    const vids = Array.from(container.querySelectorAll('video'))
+    const vids = Array.from(container.querySelectorAll("video"));
 
     vids.forEach((v) => {
-      v.muted = true
-      v.playsInline = true
-      v.loop = true
-    })
+      v.muted = true;
+      v.playsInline = true;
+      v.loop = true;
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const video = entry.target.querySelector('video')
-          if (!video) return
+          const video = entry.target.querySelector("video");
+          if (!video) return;
 
           if (entry.isIntersecting) {
-            const playPromise = video.play()
-            if (playPromise?.catch) playPromise.catch(() => {})
+            const playPromise = video.play();
+            if (playPromise?.catch) playPromise.catch(() => {});
           } else {
-            video.pause()
+            video.pause();
           }
-        })
+        });
       },
       { threshold: 0.7 }
-    )
+    );
 
-    const reelBoxes = Array.from(container.querySelectorAll('.reel'))
-    reelBoxes.forEach((el) => observer.observe(el))
+    const reelBoxes = Array.from(container.querySelectorAll(".reel"));
+    reelBoxes.forEach((el) => observer.observe(el));
 
     return () => {
-      observer.disconnect()
-      vids.forEach((v) => v.pause())
-    }
-  }, [savedVideos])
+      observer.disconnect();
+      vids.forEach((v) => v.pause());
+    };
+  }, [savedVideos]);
 
   // Fetch saved videos from backend
   useEffect(() => {
     const fetchSavedVideos = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
-        const response = await axios.get(`${API_URL}/food/save`, { withCredentials: true })
-        setSavedVideos(response.data.savedFood || [])
+        setIsLoading(true);
+        setError(null);
+        const response = await axios.get(`${API_URL}/food/save`, {
+          withCredentials: true,
+        });
+        setSavedVideos(response.data.savedFood || []);
       } catch (err) {
-        console.error('Error fetching saved videos:', err)
-        setError('Failed to load saved videos')
-        setSavedVideos([])
+        console.error("Error fetching saved videos:", err);
+        setError("Failed to load saved videos");
+        setSavedVideos([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchSavedVideos()
-  }, [])
+    fetchSavedVideos();
+  }, []);
 
   // Toggle like
   const toggleLike = async (videoId) => {
     try {
-      const currentState = interactions[videoId]?.liked
+      const currentState = interactions[videoId]?.liked;
 
       // Optimistic update
-      setInteractions(prev => ({
+      setInteractions((prev) => ({
         ...prev,
         [videoId]: {
           ...prev[videoId],
           liked: !prev[videoId].liked,
-          likes: prev[videoId].liked ? prev[videoId].likes - 1 : prev[videoId].likes + 1
-        }
-      }))
+          likes: prev[videoId].liked
+            ? prev[videoId].likes - 1
+            : prev[videoId].likes + 1,
+        },
+      }));
 
       // API call
-      const response = await axios.post(`${API_URL}/food/like`, { foodId: videoId }, { withCredentials: true })
+      const response = await axios.post(
+        `${API_URL}/food/like`,
+        { foodId: videoId },
+        { withCredentials: true }
+      );
 
       // Update with actual data from backend
       if (response.data) {
-        setInteractions(prev => ({
+        setInteractions((prev) => ({
           ...prev,
           [videoId]: {
             ...prev[videoId],
-            liked: response.data.isLiked !== undefined ? response.data.isLiked : !currentState,
-            likes: response.data.likesCount || prev[videoId].likes
-          }
-        }))
+            liked:
+              response.data.isLiked !== undefined
+                ? response.data.isLiked
+                : !currentState,
+            likes: response.data.likesCount || prev[videoId].likes,
+          },
+        }));
       }
     } catch (err) {
-      console.error('Error toggling like:', err)
+      console.error("Error toggling like:", err);
       // Revert optimistic update on error
-      setInteractions(prev => ({
+      setInteractions((prev) => ({
         ...prev,
         [videoId]: {
           ...prev[videoId],
           liked: interactions[videoId]?.liked,
-          likes: interactions[videoId]?.likes || 0
-        }
-      }))
+          likes: interactions[videoId]?.likes || 0,
+        },
+      }));
     }
-  }
+  };
 
   // Toggle bookmark (remove from saved)
   const toggleBookmark = async (videoId) => {
     try {
       // Optimistic update - remove from list (saved entry may be { food })
-      setSavedVideos(prev => prev.filter(video => {
-        const id = video.food ? video.food._id : video._id
-        return id !== videoId
-      }))
+      setSavedVideos((prev) =>
+        prev.filter((video) => {
+          const id = video.food ? video.food._id : video._id;
+          return id !== videoId;
+        })
+      );
 
       // API call - toggle save
-      const res = await axios.post(`${API_URL}/food/save`, { foodId: videoId }, { withCredentials: true })
+      const res = await axios.post(
+        `${API_URL}/food/save`,
+        { foodId: videoId },
+        { withCredentials: true }
+      );
       // If backend responds that it's still saved, re-fetch to be consistent
       if (res && res.data && res.data.isSaved) {
         try {
-          const response = await axios.get(`${API_URL}/food/save`, { withCredentials: true })
-          setSavedVideos(response.data.savedFood || [])
+          const response = await axios.get(`${API_URL}/food/save`, {
+            withCredentials: true,
+          });
+          setSavedVideos(response.data.savedFood || []);
         } catch (fetchErr) {
-          console.error('Error refetching saved videos:', fetchErr)
+          console.error("Error refetching saved videos:", fetchErr);
         }
       }
     } catch (err) {
-      console.error('Error toggling bookmark:', err)
+      console.error("Error toggling bookmark:", err);
       // Revert optimistic update on error - refetch list
       try {
-        const response = await axios.get(`${API_URL}/food/save`, { withCredentials: true })
-        setSavedVideos(response.data.savedFood || [])
+        const response = await axios.get(`${API_URL}/food/save`, {
+          withCredentials: true,
+        });
+        setSavedVideos(response.data.savedFood || []);
       } catch (fetchErr) {
-        console.error('Error refetching saved videos:', fetchErr)
+        console.error("Error refetching saved videos:", fetchErr);
       }
     }
-  }
+  };
 
   // Toggle comments visibility
   const toggleComments = (videoId) => {
-    setInteractions(prev => ({
+    setInteractions((prev) => ({
       ...prev,
       [videoId]: {
         ...prev[videoId],
-        showComments: !prev[videoId].showComments
-      }
-    }))
-  }
+        showComments: !prev[videoId].showComments,
+      },
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -184,7 +205,7 @@ const Saved = () => {
         </div>
         <BottomNavigation />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -204,7 +225,7 @@ const Saved = () => {
         </div>
         <BottomNavigation />
       </div>
-    )
+    );
   }
 
   if (savedVideos.length === 0) {
@@ -224,17 +245,23 @@ const Saved = () => {
         </div>
         <BottomNavigation />
       </div>
-    )
+    );
   }
 
   return (
     <div className="saved-page-container">
-      <div className="saved-page">
-        <div className="saved-header">
-          <h1>Saved</h1>
-          <p className="saved-count">{savedVideos.length} items</p>
-        </div>
+      {/* Header with back button */}
+      <header className="page-header">
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+        </button>
+        <h1>Saved Items</h1>
+        <span className="item-count">{savedVideos.length}</span>
+      </header>
 
+      <div className="saved-page">
         <div className="saved-container" ref={containerRef}>
           {savedVideos.map((r) => (
             <div className="reel" key={r._id}>
@@ -251,14 +278,18 @@ const Saved = () => {
               <div className="reel-interactions">
                 {/* Like Button */}
                 <button
-                  className={`interaction-btn like-btn ${interactions[r._id]?.liked ? 'active' : ''}`}
+                  className={`interaction-btn like-btn ${
+                    interactions[r._id]?.liked ? "active" : ""
+                  }`}
                   onClick={() => toggleLike(r._id)}
                   title="Like"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
-                  <span className="interaction-count">{interactions[r._id]?.likes || 0}</span>
+                  <span className="interaction-count">
+                    {interactions[r._id]?.likes || 0}
+                  </span>
                 </button>
 
                 {/* Comment Button */}
@@ -275,14 +306,18 @@ const Saved = () => {
 
                 {/* Bookmark/Save Button */}
                 <button
-                  className={`interaction-btn bookmark-btn ${interactions[r._id]?.bookmarked ? 'active' : ''}`}
+                  className={`interaction-btn bookmark-btn ${
+                    interactions[r._id]?.bookmarked ? "active" : ""
+                  }`}
                   onClick={() => toggleBookmark(r._id)}
                   title="Remove from saved"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17 3H5c-1.11 0-2 .9-2 2v16l7-3 7 3V5c0-1.1.89-2 2-2z" />
                   </svg>
-                  <span className="interaction-count">{interactions[r._id]?.bookmarks || 0}</span>
+                  <span className="interaction-count">
+                    {interactions[r._id]?.bookmarks || 0}
+                  </span>
                 </button>
               </div>
 
@@ -291,7 +326,10 @@ const Saved = () => {
                 <div className="reel-top">
                   <p className="reel-desc">{r.description}</p>
 
-                  <Link className="visit-btn" to={`/food-partner/${r.foodPartner}`}>
+                  <Link
+                    className="visit-btn"
+                    to={`/food-partner/${r.foodPartner}`}
+                  >
                     Visit store
                   </Link>
                 </div>
@@ -303,7 +341,7 @@ const Saved = () => {
 
       <BottomNavigation />
     </div>
-  )
-}
+  );
+};
 
-export default Saved
+export default Saved;

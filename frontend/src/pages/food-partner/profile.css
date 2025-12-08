@@ -9,6 +9,44 @@
   min-height: 100vh;
 }
 
+/* Loading State */
+.profile-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+/* Back Button */
+.profile-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.profile-back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-3px);
+}
+
+.profile-back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* ===========================
    BUSINESS HEADER
 =========================== */
@@ -34,7 +72,11 @@
   height: 85px;
   min-width: 85px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  );
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,6 +1,6 @@
 /* Shared Authentication Pages Styles */
 
-@import './theme.css';
+@import "./theme.css";
 
 * {
   margin: 0;
@@ -22,7 +22,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--background-color) 0%, var(--background-secondary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--background-color) 0%,
+    var(--background-secondary) 100%
+  );
   padding: var(--spacing-md);
   transition: var(--transition);
 }
@@ -139,17 +143,25 @@ body {
 /* Submit Button */
 .submit-btn {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
+  height: 48px;
+  padding: 0 var(--spacing-lg);
   margin-top: var(--spacing-lg);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: #ffffff;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--primary-dark) 100%
+  );
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: var(--transition);
   box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit-btn:hover {
@@ -220,7 +232,7 @@ body {
 
 .divider::before,
 .divider::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background-color: var(--border-color);
@@ -286,11 +298,11 @@ body {
     padding: var(--spacing-xl);
     max-width: 100%;
   }
-  
+
   .auth-header h1 {
     font-size: var(--font-size-xl);
   }
-  
+
   .form-group {
     margin-bottom: var(--spacing-md);
   }
@@ -300,24 +312,7 @@ body {
 .submit-btn.loading {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.submit-btn.loading::after {
-  content: '';
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin-left: var(--spacing-sm);
-  border: 2px solid #ffffff;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  pointer-events: none;
 }
 
 /* Additional helper classes */

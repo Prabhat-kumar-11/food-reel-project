@@ -1,39 +1,52 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import '../../styles/auth.css'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../../App';
-
-
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../../styles/auth.css";
+import axios from "axios";
+import { API_URL } from "../../App";
+import { ToastContainer, useToast } from "../../components/Toast";
 
 const UserRegister = () => {
   const navigate = useNavigate();
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toasts, removeToast, showSuccess, showError } = useToast();
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-     const formData = new FormData(e.target);
+    try {
+      const formData = new FormData(e.target);
+      const fullName = formData.get("fullName");
+      const email = formData.get("email");
+      const password = formData.get("password");
 
-    const fullName = formData.get('fullName');
-    const email = formData.get('email');
-    const phone = formData.get('phone');
-    const password = formData.get('password');
-    const agreeToTerms = formData.get('agreeToTerms') === 'on';
+      await axios.post(
+        `${API_URL}/api/auth/user/register`,
+        {
+          fullName,
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
-   const response = await axios.post(`${API_URL}/api/auth/user/register`, {
-      fullName,
-      email,
-      password,
-    },{
-      withCredentials:true // to save token in cookies (from axios)
-    })
-    navigate("/user/login");
-  }
+      showSuccess("Account created successfully! Redirecting to login...");
+      setTimeout(() => navigate("/user/login"), 1500);
+    } catch (err) {
+      showError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-container">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="auth-card">
         <div className="auth-header">
           <h1>Create Account</h1>
@@ -41,7 +54,6 @@ const UserRegister = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Full Name */}
           <div className="form-group">
             <label htmlFor="fullName">Full Name</label>
             <input
@@ -50,13 +62,11 @@ const UserRegister = () => {
               name="fullName"
               className="form-input"
               placeholder="Enter your full name"
-              
-            
               required
+              disabled={loading}
             />
           </div>
 
-          {/* Email */}
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
@@ -65,12 +75,11 @@ const UserRegister = () => {
               name="email"
               className="form-input"
               placeholder="Enter your email"
-    
               required
+              disabled={loading}
             />
           </div>
 
-          {/* Phone */}
           <div className="form-group">
             <label htmlFor="phone">Phone Number</label>
             <input
@@ -79,11 +88,10 @@ const UserRegister = () => {
               name="phone"
               className="form-input"
               placeholder="Enter your phone number"
-             
+              disabled={loading}
             />
           </div>
 
-          {/* Password */}
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -92,12 +100,11 @@ const UserRegister = () => {
               name="password"
               className="form-input"
               placeholder="Create a strong password"
-             
               required
+              disabled={loading}
             />
           </div>
 
-          {/* Terms and Conditions */}
           <div className="form-checkbox">
             <input
               type="checkbox"
@@ -106,26 +113,31 @@ const UserRegister = () => {
               checked={agreeToTerms}
               onChange={(e) => setAgreeToTerms(e.target.checked)}
               required
+              disabled={loading}
             />
             <label htmlFor="agreeToTerms">
-              I agree to the <a href="#" style={{ color: 'var(--primary-color)' }}>Terms and Conditions</a>
+              I agree to the{" "}
+              <a href="#" style={{ color: "var(--primary-color)" }}>
+                Terms and Conditions
+              </a>
             </label>
           </div>
 
-          {/* Submit Button */}
-          <button type="submit" className="submit-btn">
-            Create Account
+          <button
+            type="submit"
+            className={`submit-btn ${loading ? "loading" : ""}`}
+            disabled={loading}
+          >
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        {/* Footer */}
         <div className="auth-footer">
-          Already have an account?{' '}
-          <Link to="/user/login">Log In</Link>
+          Already have an account? <Link to="/user/login">Log In</Link>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserRegister
+export default UserRegister;

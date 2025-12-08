@@ -159,7 +159,7 @@ async function loginFoodPartner(req, res) {
   }
 
   const token = jwt.sign(
-    { id: foodPartner._id, role: "food-partner" },
+    { id: foodPartner._id, role: "foodPartner" },
     process.env.JWT_SECRET
   );
 
@@ -239,6 +239,38 @@ async function resetPassword(req, res) {
   return res.json({ message: "Password reset successful" });
 }
 
+// Get current user session
+async function getUserMe(req, res) {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role === "user") {
+      const user = await userModel.findById(decoded.id).select("-password");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.status(200).json({ user, role: "user" });
+    } else if (decoded.role === "foodPartner") {
+      const foodPartner = await foodPartnerModel
+        .findById(decoded.id)
+        .select("-password");
+      if (!foodPartner) {
+        return res.status(404).json({ message: "Food partner not found" });
+      }
+      return res.status(200).json({ user: foodPartner, role: "foodPartner" });
+    }
+
+    return res.status(401).json({ message: "Invalid token" });
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
@@ -248,4 +280,5 @@ module.exports = {
   logoutFoodPartner,
   forgotPassword,
   resetPassword,
+  getUserMe,
 };
