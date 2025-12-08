@@ -5,13 +5,22 @@ const foodModel = require("../models/food.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Cookie options
-const isProduction = process.env.NODE_ENV === "production";
-const cookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-  path: "/",
+// Helper to get cookie options based on request origin
+const getCookieOptions = (req) => {
+  const origin = req?.headers?.origin || "";
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    origin.includes("onrender.com") ||
+    origin.includes("vercel.app") ||
+    origin.startsWith("https://");
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
 };
 
 // ==================== AUTH ====================
@@ -61,7 +70,7 @@ async function loginAdmin(req, res) {
       { expiresIn: "7d" }
     );
 
-    res.cookie("adminToken", token, cookieOptions);
+    res.cookie("adminToken", token, getCookieOptions(req));
     res.status(200).json({
       message: "Login successful",
       admin: { id: admin._id, fullName: admin.fullName, email: admin.email },
@@ -72,7 +81,7 @@ async function loginAdmin(req, res) {
 }
 
 async function logoutAdmin(req, res) {
-  res.clearCookie("adminToken", cookieOptions);
+  res.clearCookie("adminToken", getCookieOptions(req));
   res.status(200).json({ message: "Logged out successfully" });
 }
 

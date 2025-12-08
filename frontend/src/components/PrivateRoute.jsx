@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../App";
@@ -7,6 +7,8 @@ import { API_URL } from "../App";
 const AUTH_KEY = "isLoggedIn";
 const AUTH_ROLE_KEY = "userRole";
 const ADMIN_KEY = "adminData";
+const AUTH_TIMESTAMP_KEY = "authTimestamp";
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 // Axios config
 const axiosConfig = {
@@ -21,8 +23,35 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Helper to check if user might be logged in (quick localStorage check)
-const mightBeLoggedIn = () => localStorage.getItem(AUTH_KEY) === "true";
+// Clear all auth data from localStorage
+const clearAuthData = () => {
+  localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(AUTH_ROLE_KEY);
+  localStorage.removeItem(AUTH_TIMESTAMP_KEY);
+};
+
+// Check if session might still be valid (not expired based on timestamp)
+const isSessionPossiblyValid = () => {
+  const isLoggedIn = localStorage.getItem(AUTH_KEY) === "true";
+  if (!isLoggedIn) return false;
+
+  const timestamp = localStorage.getItem(AUTH_TIMESTAMP_KEY);
+  if (!timestamp) {
+    // No timestamp = old session, clear it
+    clearAuthData();
+    return false;
+  }
+
+  const elapsed = Date.now() - parseInt(timestamp, 10);
+  if (elapsed > SESSION_MAX_AGE) {
+    // Session expired, clear it
+    clearAuthData();
+    return false;
+  }
+
+  return true;
+};
+
 const mightBeAdmin = () => !!localStorage.getItem(ADMIN_KEY);
 
 // Helper to verify auth with server and update localStorage
@@ -32,13 +61,13 @@ const verifyAuth = async () => {
     if (response.status === 200 && response.data.user) {
       localStorage.setItem(AUTH_KEY, "true");
       localStorage.setItem(AUTH_ROLE_KEY, response.data.role || "user");
+      localStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString());
       return { authenticated: true, role: response.data.role };
     }
   } catch (e) {
     // Silent fail
   }
-  localStorage.removeItem(AUTH_KEY);
-  localStorage.removeItem(AUTH_ROLE_KEY);
+  clearAuthData();
   return { authenticated: false, role: null };
 };
 
@@ -61,21 +90,30 @@ export const PrivateRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     const checkAuth = async () => {
-      // Quick check - if no localStorage flag, redirect immediately
-      if (!mightBeLoggedIn()) {
-        setIsAuthenticated(false);
-        setLoading(false);
+      // Quick check - if session not possibly valid, redirect immediately
+      if (!isSessionPossiblyValid()) {
+        if (isMounted.current) {
+          setIsAuthenticated(false);
+          setLoading(false);
+        }
         return;
       }
       // Verify with server
       const { authenticated } = await verifyAuth();
-      setIsAuthenticated(authenticated);
-      setLoading(false);
+      if (isMounted.current) {
+        setIsAuthenticated(authenticated);
+        setLoading(false);
+      }
     };
     checkAuth();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   if (loading) return <LoadingSpinner />;
@@ -89,21 +127,30 @@ export const PrivateRoute = ({ children }) => {
 export const PublicRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     const checkAuth = async () => {
-      // Quick check - if no localStorage flag, allow access immediately
-      if (!mightBeLoggedIn()) {
-        setIsAuthenticated(false);
-        setLoading(false);
+      // Quick check - if session not possibly valid, allow access immediately
+      if (!isSessionPossiblyValid()) {
+        if (isMounted.current) {
+          setIsAuthenticated(false);
+          setLoading(false);
+        }
         return;
       }
       // Verify with server
       const { authenticated } = await verifyAuth();
-      setIsAuthenticated(authenticated);
-      setLoading(false);
+      if (isMounted.current) {
+        setIsAuthenticated(authenticated);
+        setLoading(false);
+      }
     };
     checkAuth();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   if (loading) return <LoadingSpinner />;
@@ -116,24 +163,33 @@ export const FoodPartnerRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isFoodPartner, setIsFoodPartner] = useState(false);
   const location = useLocation();
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     const checkAuth = async () => {
       // Quick check
       if (
-        !mightBeLoggedIn() ||
+        !isSessionPossiblyValid() ||
         localStorage.getItem(AUTH_ROLE_KEY) !== "foodPartner"
       ) {
-        setIsFoodPartner(false);
-        setLoading(false);
+        if (isMounted.current) {
+          setIsFoodPartner(false);
+          setLoading(false);
+        }
         return;
       }
       // Verify with server
       const { authenticated, role } = await verifyAuth();
-      setIsFoodPartner(authenticated && role === "foodPartner");
-      setLoading(false);
+      if (isMounted.current) {
+        setIsFoodPartner(authenticated && role === "foodPartner");
+        setLoading(false);
+      }
     };
     checkAuth();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   if (loading) return <LoadingSpinner />;
@@ -150,21 +206,30 @@ export const AdminRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     const checkAuth = async () => {
       // Quick check
       if (!mightBeAdmin()) {
-        setIsAdmin(false);
-        setLoading(false);
+        if (isMounted.current) {
+          setIsAdmin(false);
+          setLoading(false);
+        }
         return;
       }
       // Verify with server
       const verified = await verifyAdminAuth();
-      setIsAdmin(verified);
-      setLoading(false);
+      if (isMounted.current) {
+        setIsAdmin(verified);
+        setLoading(false);
+      }
     };
     checkAuth();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   if (loading) return <LoadingSpinner />;

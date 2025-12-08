@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
       // Clear localStorage flags
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("authTimestamp");
       setUser(null);
     }
   };

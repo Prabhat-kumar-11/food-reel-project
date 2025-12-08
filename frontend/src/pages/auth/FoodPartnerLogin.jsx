@@ -38,6 +38,7 @@ const FoodPartnerLogin = () => {
       // Set localStorage flags for route protection
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userRole", "foodPartner");
+      localStorage.setItem("authTimestamp", Date.now().toString());
       showSuccess("Login successful! Redirecting...");
       setTimeout(() => navigate("/create-food"), 1000);
     } catch (err) {

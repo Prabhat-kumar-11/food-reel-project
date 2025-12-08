@@ -38,6 +38,7 @@ const UserLogin = () => {
       // Set localStorage flags for route protection
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userRole", "user");
+      localStorage.setItem("authTimestamp", Date.now().toString());
       showSuccess("Login successful! Redirecting...");
       setTimeout(() => navigate("/home"), 1000);
     } catch (err) {

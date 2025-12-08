@@ -9,7 +9,20 @@ const cors = require("cors");
 const app = express();
 
 // Allowed origins for CORS (add other deployment domains here)
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://food-reel-project-4jlx.onrender.com",
+];
+
+// Check if origin is allowed (includes vercel.app and onrender.com domains)
+const isOriginAllowed = (origin) => {
+  if (!origin) return false;
+  if (allowedOrigins.includes(origin)) return true;
+  if (/\.vercel\.app$/.test(origin)) return true;
+  if (/\.onrender\.com$/.test(origin)) return true;
+  return false;
+};
 
 // Middleware to echo allowed origin and explicitly set credentials header.
 // This ensures the browser receives Access-Control-Allow-Credentials: true
@@ -18,9 +31,7 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (!origin) return next();
 
-  const isAllowed =
-    allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin);
-  if (isAllowed) {
+  if (isOriginAllowed(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
@@ -43,8 +54,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin))
-        return callback(null, true);
+      if (isOriginAllowed(origin)) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
